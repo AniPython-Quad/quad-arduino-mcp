@@ -37,6 +37,8 @@ public:
     void run(float steps, int t);
     void walk(float steps, int t);
 
+    void execute(float steps, int period[8], int amplitude[8], int offset[8], int phase[8]);
+
 private:
     Oscillator oscillator[8];
     Servo servo[8];
@@ -50,7 +52,7 @@ private:
     float _servo_position[8];
 
     int angToUsec(float value);
-    void execute(float steps, int period[8], int amplitude[8], int offset[8], int phase[8]);
+
 };
 
 #endif

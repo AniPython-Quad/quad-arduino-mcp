@@ -56,17 +56,15 @@ MiniKame robot;
 // test_action_mode 为 true 时，机器人将执行测试动作
 bool testActionMode = false;
 
-int stepsDefault = 3;
-int periodDefault[8] = {1000}; // 动作周期，单位：毫秒
-int amplitudeDefault[8] = {0}; // 动作幅度，范围：0-180
-int offsetDefault[8] = {90}; // 动作偏移，90表示不偏移, 范围：0-180
-int phaseDefault[8] = {0}; // 动作相位，范围：0-360
+const int periodDefault[8] = {1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000}; // 动作周期，单位：毫秒
+constexpr int amplitudeDefault[8] = {}; // 动作幅度，范围：0-180
+const int offsetDefault[8] = {90, 90, 90, 90, 90, 90, 90, 90}; // 动作偏移，90表示不偏移, 范围：0-180
+constexpr int phaseDefault[8] = {}; // 动作相位，范围：0-360
 
-int steps = 3;
-int period[8] = {1000}; // 动作周期，单位：毫秒
-int amplitude[8] = {0}; // 动作幅度，范围：0-180
-int offset[8] = {90}; // 动作偏移，90表示不偏移, 范围：0-180
-int phase[8] = {0}; // 动作相位，范围：0-360
+int period[8] = {1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000}; // 周期，单位：毫秒
+int amplitude[8] = {}; // 振幅，范围：0-180
+int offset[8] = {90, 90, 90, 90, 90, 90, 90, 90}; // 偏移，90表示不偏移, 范围：0-180
+int phase[8] = {}; // 相位，范围：0-360
 
 // 缓冲区管理
 #define MAX_INPUT_LENGTH 1024
@@ -88,6 +86,7 @@ void blinkLed(int times, int delayMs);
 void registerMcpTools();
 void printHelp();
 void printStatus();
+void printOscillator();
 
 void setup()
 {
@@ -383,6 +382,25 @@ void printHelp()
     DEBUG_SERIAL.println("  其他任何文本将直接发送到MCP服务器");
 }
 
+void printOscillator()
+{
+    for (int i = 0; i < 8; i++)
+    {
+        DEBUG_SERIAL.print("index " + String(i) + ": ");
+        DEBUG_SERIAL.print("period(周期): ");
+        DEBUG_SERIAL.print(period[i]);
+        DEBUG_SERIAL.print("\t");
+        DEBUG_SERIAL.print(" amplitude(振幅): ");
+        DEBUG_SERIAL.print(amplitude[i]);
+        DEBUG_SERIAL.print("\t");
+        DEBUG_SERIAL.print(" offset(偏移): ");
+        DEBUG_SERIAL.print(offset[i]);
+        DEBUG_SERIAL.print("\t");
+        DEBUG_SERIAL.print(" phase(相位): ");
+        DEBUG_SERIAL.println(phase[i]);
+    }
+}
+
 /**
  * 注册MCP工具
  * 在连接成功后注册工具
@@ -390,58 +408,6 @@ void printHelp()
 void registerMcpTools()
 {
     DEBUG_SERIAL.println("[MCP] 注册工具...");
-
-    // 注册LED控制工具
-    mcpClient.registerTool(
-        "led_blink", // 工具名称
-        "控制ESP32 LED状态", // 工具描述
-        "{\"properties\":{\"state\":{\"title\":\"LED状态\",\"type\":\"string\",\"enum\":[\"on\",\"off\",\"blink\"]}},\"required\":[\"state\"],\"title\":\"ledControlArguments\",\"type\":\"object\"}",
-        // 输入schema
-        [](const String& args)
-        {
-            // 解析参数
-            DEBUG_SERIAL.println("[工具] LED控制: " + args); // args: {"state":"blink"}
-            DynamicJsonDocument doc(256);
-            DeserializationError error = deserializeJson(doc, args);
-
-            if (error)
-            {
-                // 返回错误响应
-                WebSocketMCP::ToolResponse response("{\"success\":false,\"error\":\"无效的参数格式\"}", true);
-                return response;
-            }
-
-            String state = doc["state"].as<String>();
-            DEBUG_SERIAL.println("[工具] LED控制: " + state);
-
-            // 控制LED
-            if (state == "on")
-            {
-                digitalWrite(LED_PIN, HIGH);
-            }
-            else if (state == "off")
-            {
-                digitalWrite(LED_PIN, LOW);
-            }
-            else if (state == "blink")
-            {
-                // 这里可以触发闪烁模式
-                // 为简单起见，我们只是切换几次LED状态
-                for (int i = 0; i < 5; i++)
-                {
-                    digitalWrite(LED_PIN, HIGH);
-                    delay(200);
-                    digitalWrite(LED_PIN, LOW);
-                    delay(200);
-                }
-            }
-
-            // 返回成功响应
-            String resultJson = "{\"success\":true,\"state\":\"" + state + "\"}";
-            return WebSocketMCP::ToolResponse(resultJson);
-        }
-    );
-    DEBUG_SERIAL.println("[MCP] LED控制工具已注册");
 
     // 注册系统信息工具
     mcpClient.registerTool(
@@ -469,50 +435,11 @@ void registerMcpTools()
     );
     DEBUG_SERIAL.println("[MCP] 系统信息工具已注册");
 
-    // 注册计算器工具 (简单示例)
-    mcpClient.registerTool(
-        "calculator",
-        "简单计算器",
-        "{\"properties\":{\"expression\":{\"title\":\"表达式\",\"type\":\"string\"}},\"required\":[\"expression\"],\"title\":\"calculatorArguments\",\"type\":\"object\"}",
-        [](const String& args)
-        {
-            DEBUG_SERIAL.println("[简单计算器: " + args); // args: "1+1"
-            DynamicJsonDocument doc(256);
-            deserializeJson(doc, args);
-
-            String expr = doc["expression"].as<String>();
-            DEBUG_SERIAL.println("[工具] 计算器: " + expr);
-
-            // 这里只是演示，实际应用中需要实现表达式计算
-            // 我们只处理简单的加减法
-            int result = 0;
-            if (expr.indexOf("+") > 0)
-            {
-                int plusPos = expr.indexOf("+");
-                int a = expr.substring(0, plusPos).toInt();
-                int b = expr.substring(plusPos + 1).toInt();
-                result = a + b;
-            }
-            else if (expr.indexOf("-") > 0)
-            {
-                int minusPos = expr.indexOf("-");
-                int a = expr.substring(0, minusPos).toInt();
-                int b = expr.substring(minusPos + 1).toInt();
-                result = a - b;
-            }
-
-            String resultJson = "{\"success\":true,\"expression\":\"" + expr + "\",\"result\":" + String(result) + "}";
-            return WebSocketMCP::ToolResponse(resultJson);
-        }
-    );
-    DEBUG_SERIAL.println("[MCP] 计算器工具已注册");
-
-    DEBUG_SERIAL.println("[MCP] 工具注册完成，共" + String(mcpClient.getToolCount()) + "个工具");
-
+    // 注册四足机器人工具
     mcpClient.registerTool(
         "robot",
-        "机器人",
-        "{\"properties\":{\"command\":{\"title\":\"机器人指令\",\"type\":\"string\",\"enum\":[\"hello\",\"forward\",\"backward\",\"turn_left\",\"turn_right\",\"moonwalk\",\"push_up\",\"stand_at_attention\"]},\"steps\":{\"title\":\"步数\",\"type\":\"number\",\"minimum\":0}},\"required\":[\"command\"],\"title\":\"robotControlArguments\",\"type\":\"object\"}",
+        "遥控机器人指令",
+        "{\"properties\":{\"command\":{\"title\":\"机器人指令\",\"type\":\"string\",\"enum\":[\"hello\",\"forward\",\"backward\",\"turn_left\",\"turn_right\",\"moonwalk\",\"push_up\",\"stand_at_attention\",\"execute_test_oscillator\",\"reset_oscillator\"]},\"steps\":{\"title\":\"步数\",\"type\":\"number\",\"minimum\":0}},\"required\":[\"command\"],\"title\":\"robotControlArguments\",\"type\":\"object\"}",
         [](const String& args)
         {
             String resultJson = "{}";
@@ -569,6 +496,24 @@ void registerMcpTools()
                 robot.home();
                 resultJson = "{\"success\":true,\"command\":\"home\",\"steps\":\"" + String(steps) + "\"}";
             }
+            else if (command == "execute_test_oscillator")
+            {
+                robot.execute(steps, period, amplitude, offset, phase);
+                resultJson = "{\"success\":true,\"command\":\"execute_test_oscillator\",\"steps\":\"" + String(steps) +
+                    "\"}";
+            }
+            else if (command == "reset_oscillator")
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    period[i] = periodDefault[i];
+                    amplitude[i] = amplitudeDefault[i];
+                    offset[i] = offsetDefault[i];
+                    phase[i] = phaseDefault[i];
+                }
+                printOscillator();
+                resultJson = "{\"success\":true,\"command\":\"reset_oscillator\"}";
+            }
             else
             {
                 resultJson = "{\"success\":false,\"error\":\"无效的指令\"}";
@@ -579,6 +524,7 @@ void registerMcpTools()
         }
     );
 
+    // 注册舵机控制工具
     mcpClient.registerTool(
         "robot.servo_control", // 工具名称
         "使用语音单独控制每个舵机的角度。舵机索引对应关系：0 - 左前大腿，1 - 右前大腿，2 - 左前小腿，3 - 右前小腿，4 - 左后大腿，5 - 右后大腿，6 - 左后小腿，7 - 右后小腿", // 工具描述
@@ -614,9 +560,10 @@ void registerMcpTools()
     );
     DEBUG_SERIAL.println("[MCP] 舵机控制工具已注册");
 
+    // 注册振荡器参数设置工具
     mcpClient.registerTool(
         "robot.oscillator_settings", // 工具名称
-        "使用语音设置振荡器参数", // 工具描述
+        "设置振荡器参数", // 工具描述
         "{\"properties\":{\"servo_index\":{\"title\":\"舵机索引（0 - 左前大腿，1 - 右前大腿，2 - 左前小腿，3 - 右前小腿，4 - 左后大腿，5 - 右后大腿，6 - 左后小腿，7 - 右后小腿）\",\"type\":\"integer\",\"minimum\":0,\"maximum\":7},\"arg_name\":{\"title\":\"舵机参数名称\",\"enum\":[\"period\",\"amplitude\",\"offset\",\"phase\"],\"type\":\"string\"},\"value\":{\"title\":\"值\",\"type\":\"integer\"}},\"required\":[\"servo_index\",\"arg_name\",\"value\"],\"title\":\"servoOscillatorArguments\",\"type\":\"object\"}",
         // 输入schema
         [](const String& args)
@@ -637,26 +584,19 @@ void registerMcpTools()
             String arg_name = doc["arg_name"].as<String>();
             int value = doc["value"].as<int>();
 
-            if (arg_name == "period") { period[servo_index] = value;}
-            else if (arg_name == "amplitude") { amplitude[servo_index] = value;}
-            else if (arg_name == "offset") { offset[servo_index] = value;}
-            else if (arg_name == "phase") { phase[servo_index] = value;}
+            if (arg_name == "period") { period[servo_index] = value; }
+            else if (arg_name == "amplitude") { amplitude[servo_index] = value; }
+            else if (arg_name == "offset") { offset[servo_index] = value; }
+            else if (arg_name == "phase") { phase[servo_index] = value; }
 
             // 返回成功响应
             String resultJson = "{\"success\":true,\"message\":\"振荡器参数设置成功\"}";
 
-            for (int i = 0; i < 8; i++) {
-                DEBUG_SERIAL.print("period: ");
-                DEBUG_SERIAL.print(period[i]);
-                DEBUG_SERIAL.print(" amplitude: ");
-                DEBUG_SERIAL.print(amplitude[i]);
-                DEBUG_SERIAL.print(" offset: ");
-                DEBUG_SERIAL.print(offset[i]);
-                DEBUG_SERIAL.print(" phase: ");
-                DEBUG_SERIAL.println(phase[i]);
-            }
+            printOscillator();
             return WebSocketMCP::ToolResponse(resultJson);
         }
     );
     DEBUG_SERIAL.println("[MCP] 振荡器参数设置工具已注册");
+
+    DEBUG_SERIAL.println("[MCP] 工具注册完成，共" + String(mcpClient.getToolCount()) + "个工具");
 }
