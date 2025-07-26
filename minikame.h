@@ -9,10 +9,14 @@
 class MiniKame{
 public:
     void init();
+
     void setServo(int id, float target);
     void reverseServo(int id);
     float getServo(int id);
     void moveServos(int time, float target[8]);
+
+    void setTrim(int index, int value);
+    int getTrim(int index);
 
     // 定义动作
     // 1. 方向
@@ -42,8 +46,8 @@ public:
 private:
     Oscillator oscillator[8];
     Servo servo[8];
-    int board_pins[8];
     int trim[8];
+    int board_pins[8];
     bool reverse[8];
     unsigned long _init_time;
     unsigned long _final_time;
