@@ -34,12 +34,12 @@
 
 /********** 配置项 ***********/
 // WiFi设置
-const char* WIFI_SSID = "小亦站";
-const char* WIFI_PASS = "88889999";
+const char* WIFI_SSID = "你的Wifi名称";
+const char* WIFI_PASS = "你的Wifi密码";
 
 // WebSocket MCP服务器地址 访问ai小智官网获取 https://xiaozhi.me/
 const char* MCP_ENDPOINT =
-    "wss://api.xiaozhi.me/mcp/?token=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIwNDEzNywiYWdlbnRJZCI6NDc0MTA2LCJlbmRwb2ludElkIjoiYWdlbnRfNDc0MTA2IiwicHVycG9zZSI6Im1jcC1lbmRwb2ludCIsImlhdCI6MTc1MjgwODE4Mn0.1bCPzso9QVj7Jp9QExYIDrPDbYIOLOxzJcxE13jD95erJUd66BcYstvsNaQ9WGdYLJ06uAu-fnfXCiNQLNdduw";
+    "wss://api.xiaozhi.me/mcp/?token=<你的token>";
 
 // 调试信息
 #define DEBUG_SERIAL Serial
