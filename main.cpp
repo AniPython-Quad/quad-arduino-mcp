@@ -1,5 +1,5 @@
 /**
- * arduino安装开发板: ESP32 (by Espressif Systems 3.2.1)
+ * arduino安装开发板: ESP32 (by Espressif Systems 3.0.7)
  * arduino选择开发板: ESP32 Dev Module
  *
  * 库:
