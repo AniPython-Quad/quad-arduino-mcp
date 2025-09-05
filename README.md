@@ -16,3 +16,7 @@ const char* WIFI_SSID = "您的wifi名称";
 const char* WIFI_PASS = "您的wifi密码";  
 const char* MCP_ENDPOINT = "wss://api.xiaozhi.me/mcp/?token=<您的小智MCP接入点token>";  
 ```
+
+补充:  
+小智AI官网: https://xiaozhi.me/    
+小智AI烧录固件, 设备配网, 绑定设备等操作可以参考小智AI`DIY教程`    

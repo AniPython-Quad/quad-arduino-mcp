@@ -1,11 +1,12 @@
 /**
- * arduino安装开发板: ESP32 (by Espressif Systems 3.0.7)
+ * arduino安装开发板: ESP32 (by Espressif Systems 3.3.0)
  * arduino选择开发板: ESP32 Dev Module
  *
  * 库:
- *  - ESP32Servo (by Kevin Harrington 3.0.8)
- *  - WebSockets (by Markus Sattler 2.6.1)
+ *  - ESP32Servo (by Kevin Harrington 3.0.9)
+ *  - WebSockets (by Markus Sattler 2.7.0)
  *  - ArduinoJson (by Benoit Blanchon 7.4.2)
+ *  - xiaozhi-mcp (by toddpan 1.0.0)
  *
  * 舵机与 esp32 引脚接线图, 数据口方向为后 (tail)
  * 可以在 minikame.cpp 文中的 MiniKame::init() 方法中修改
@@ -29,16 +30,16 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
-#include "WebSocketMCP.h"
+#include <WebSocketMCP.h>
 #include "minikame.h"
 
 /********** 配置项 ***********/
-// WiFi设置
+// WiFi设置, 换成你自己的 WIFI 名称和密码
 const char* WIFI_SSID = "小亦站";
 const char* WIFI_PASS = "88889999";
 
 // WebSocket MCP服务器地址 访问ai小智官网获取 https://xiaozhi.me/
-const char* MCP_ENDPOINT = "ws://api.xiaozhi.me/mcp/?token=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIwNDEzNywiYWdlbnRJZCI6NDc0MTA2LCJlbmRwb2ludElkIjoiYWdlbnRfNDc0MTA2IiwicHVycG9zZSI6Im1jcC1lbmRwb2ludCIsImlhdCI6MTc1MjgwODE4Mn0.1bCPzso9QVj7Jp9QExYIDrPDbYIOLOxzJcxE13jD95erJUd66BcYstvsNaQ9WGdYLJ06uAu-fnfXCiNQLNdduw924";
+const char* MCP_ENDPOINT = "wss://api.xiaozhi.me/mcp/?token=xxx";
 
 // 调试信息
 #define DEBUG_SERIAL Serial
@@ -407,6 +408,36 @@ void printOscillator()
 void registerMcpTools()
 {
     DEBUG_SERIAL.println("[MCP] 注册工具...");
+
+    // 注册一个简单的LED控制工具
+    mcpClient.registerTool(
+        "led_blink",
+        "控制ESP32板载LED",
+        "{\"type\":\"object\",\"properties\":{\"state\":{\"type\":\"string\",\"enum\":[\"on\",\"off\",\"blink\"]}},\"required\":[\"state\"]}",
+        [](const String& args) {
+        DynamicJsonDocument doc(256);
+        deserializeJson(doc, args);
+        String state = doc["state"].as<String>();
+        
+        if (state == "on") {
+            digitalWrite(LED_PIN, HIGH);
+            delay(600);
+        } else if (state == "off") {
+            digitalWrite(LED_PIN, LOW);
+            delay(600);
+        } else if (state == "blink") {
+            for (int i = 0; i < 5; i++) {
+            digitalWrite(LED_PIN, HIGH);
+            delay(200);
+            digitalWrite(LED_PIN, LOW);
+            delay(200);
+            }
+        }
+        
+        return WebSocketMCP::ToolResponse("{\"success\":true,\"state\":\"" + state + "\"}");
+        }
+    );
+    Serial.println("[MCP] LED控制工具已注册");
 
     // 注册系统信息工具
     mcpClient.registerTool(
