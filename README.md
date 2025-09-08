@@ -1,4 +1,4 @@
-# Quad 四足机器人 arduino 代码, 小智MCP语音控制
+# 小智AI语音控制 Quad 四足机器人 arduino 代码
 
 ### 淘宝链接:  
 小智Ai对话机器人: https://item.taobao.com/item.htm?ft=t&id=973456274597  
@@ -32,4 +32,7 @@ const char* MCP_ENDPOINT = "wss://api.xiaozhi.me/mcp/?token=<您的小智MCP接�
 小智AI烧录固件, 设备配网, 绑定设备等操作可以参考小智AI`DIY教程`    
 
 #### 2. arduino安装esp32开发板(使用国内镜像)视频说明:  
-https://www.bilibili.com/video/BV1Fr84zKEma/?vd_source=30ce0b8edbf661a7044de99533872fce
+https://www.bilibili.com/video/BV1Fr84zKEma/
+
+#### 3. 小智AI MCP_ENDPOINT 接入点获取演示:
+https://www.bilibili.com/video/BV1Jq8szFEhF/
