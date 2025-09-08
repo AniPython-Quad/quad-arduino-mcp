@@ -1,5 +1,9 @@
 # Quad 四足机器人 arduino 代码, 小智MCP语音控制
 
+淘宝链接:
+小智Ai对话机器人: https://item.taobao.com/item.htm?ft=t&id=973456274597  
+四足机器人: https://item.taobao.com/item.htm?ft=t&id=888872820389
+
 说明:   
 安装开发板和依赖库版本的时候, 直接安装最新版就可以, 不一定按下面这些版本  
 如果安装最新版有问题, 再尝试回退到以下提供的版本  
